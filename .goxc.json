@@ -1,0 +1,4 @@
+{
+	"BuildConstraints": "linux windows darwin",
+	"ConfigVersion": "0.9"
+}
