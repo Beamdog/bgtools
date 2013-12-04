@@ -17,6 +17,7 @@ var palette = flag.String("palette", "palette.png", "Palette to use for the bam"
 var mirror = flag.Bool("mirror", false, "Set to true to mirror all the frames")
 var offset_x = flag.Int("offsetx", 0, "Offset all exported frames in X direction")
 var offset_y = flag.Int("offsety", 0, "Offset all exported frames in Y direction")
+var mode = flag.String("mode", "bamd", "Output format[bamd, gif]")
 
 func main() {
 	flag.Parse()
@@ -32,12 +33,18 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		outputName := strings.TrimSuffix(filepath.Base(*input), filepath.Ext(*input))
-		if strings.ToLower(filepath.Ext(*output)) == ".bamd" {
+		outputName := strings.TrimSuffix(filepath.Base(*output), filepath.Ext(*output))
+		if *mode == "gif" {
+			err := bamIn.MakeGif(*output, outputName)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else if *mode == "bamd" {
 			bamIn.MakeBamd(filepath.Clean(*output), outputName, *mirror, *offset_x, *offset_y)
-		} else if strings.ToLower(filepath.Ext(*output)) == ".gif" {
-			bamIn.MakeGif(*output, outputName)
+		} else {
+			log.Fatal("Unknown output mode: %s\n", *mode)
 		}
+
 	} else if strings.ToLower(filepath.Ext(*input)) == ".bamd" {
 		bamOut, err := bg.OpenBAMD(bamFileIn, *palette)
 		if err != nil {
