@@ -1,6 +1,6 @@
 {
 	"ArtifactsDest": "web",
 	"BuildConstraints": "windows darwin",
-	"PackageVersion": "0.1",
+	"PackageVersion": "0.2",
 	"ConfigVersion": "0.9"
 }
