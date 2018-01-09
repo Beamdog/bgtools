@@ -2,13 +2,15 @@ package main
 
 import (
 	"flag"
+	"image"
+	"image/gif"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-	"image"
-	"image/gif"
+
 	"github.com/Beamdog/bgfileformats"
+	//	"github.com/davecheney/profile"
 )
 
 var input = flag.String("input", "input.bam", "Source [bam, bamd, gif]")
@@ -21,6 +23,7 @@ var mode = flag.String("mode", "bamd", "Output format[bamd, gif]")
 
 func main() {
 	flag.Parse()
+	//defer profile.Start(profile.CPUProfile).Stop()
 
 	bamFileIn, err := os.Open(filepath.Clean(*input))
 	if err != nil {
@@ -29,7 +32,7 @@ func main() {
 	defer bamFileIn.Close()
 	if strings.ToLower(filepath.Ext(*input)) == ".bam" {
 
-		bamIn, err := bg.OpenBAM(bamFileIn)
+		bamIn, err := bg.OpenBAM(bamFileIn, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -46,15 +49,23 @@ func main() {
 		}
 
 	} else if strings.ToLower(filepath.Ext(*input)) == ".bamd" {
-		bamOut, err := bg.OpenBAMD(bamFileIn, *palette)
-		if err != nil {
-			log.Fatal(err)
-		}
+		//Open our output path first
 		outBam, err := os.Create(*output)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer outBam.Close()
+
+		//Chdir to the root of our .bamd so our paths are consistent
+		bamdRoot := filepath.Dir(*input)
+		os.Chdir(bamdRoot)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bamOut, err := bg.OpenBAMD(bamFileIn, *palette)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		bamOut.MakeBam(outBam)
 	} else if strings.ToLower(filepath.Ext(*input)) == ".gif" {
@@ -70,7 +81,7 @@ func main() {
 		defer outFile.Close()
 
 		sequences := make([]image.Point, 1)
-		sequences[0] = image.Pt(0,len(gif.Image))
+		sequences[0] = image.Pt(0, len(gif.Image))
 		bam, err := bg.MakeBamFromGif(gif, sequences)
 		if err != nil {
 			log.Fatal(err)
@@ -82,5 +93,3 @@ func main() {
 		}
 	}
 }
-
-
